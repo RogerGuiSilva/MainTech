@@ -59,7 +59,7 @@ def seed_equipamentos():
     for e in equipamentos:
         inserir_equipamento(**e)
 
-    print("✅ Seed de equipamentos concluído.")
+    print("Seed de equipamentos concluído.")
 
 if __name__ == "__main__":
     seed_equipamentos()
