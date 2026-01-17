@@ -5,10 +5,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "database", "app.db")
 
 def get_connection():
-    return sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -28,6 +30,21 @@ def init_db():
             setor TEXT NOT NULL,
             tipo TEXT NOT NULL,
             status TEXT NOT NULL
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS falhas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            descricao TEXT NOT NULL,
+            tipo TEXT NOT NULL,
+            gravidade TEXT NOT NULL,
+            data_ocorrencia TEXT NOT NULL,
+            status TEXT NOT NULL,
+            maquina_id INTEGER,
+            equipamento_id INTEGER,
+            FOREIGN KEY (maquina_id) REFERENCES maquinas(id),
+            FOREIGN KEY (equipamento_id) REFERENCES equipamentos(id)
         )
     """)
 
