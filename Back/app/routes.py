@@ -91,3 +91,63 @@ def get_maquinas():
         })
 
     return jsonify(maquinas)
+
+
+@bp.route("/falhas", methods=["GET"])
+def listar_falhas():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            f.id,
+            f.descricao,
+            f.tipo,
+            f.gravidade,
+            f.status,
+            f.data_ocorrencia,
+
+            m.id,
+            m.nome,
+            m.setor,
+
+            e.id,
+            e.nome,
+            e.setor
+        FROM falhas f
+        LEFT JOIN maquinas m ON f.maquina_id = m.id
+        LEFT JOIN equipamentos e ON f.equipamento_id = e.id
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    resultado = []
+
+    for r in rows:
+        falha = {
+            "id": r[0],
+            "descricao": r[1],
+            "tipo": r[2],
+            "gravidade": r[3],
+            "status": r[4],
+            "data_ocorrencia": r[5]
+        }
+
+        if r[6] is not None:  # máquina
+            falha["maquina"] = {
+                "id": r[6],
+                "nome": r[7],
+                "setor": r[8]
+            }
+
+        if r[9] is not None:  # equipamento
+            falha["equipamento"] = {
+                "id": r[9],
+                "nome": r[10],
+                "setor": r[11]
+            }
+
+        resultado.append(falha)
+
+    return jsonify(resultado)
