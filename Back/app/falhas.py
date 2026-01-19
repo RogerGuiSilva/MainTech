@@ -27,12 +27,14 @@ def inserir_falha(descricao, tipo, gravidade, data_ocorrencia, status, maquina_i
             conn.close()
             return f"Erro: Equipamento com ID {equipamento_id} não existe"
 
-   
     cursor.execute("""
-        INSERT INTO falhas (descricao, tipo, gravidade, data_ocorrencia, status, maquina_id, equipamento_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (descricao, tipo, gravidade, data_ocorrencia, status, maquina_id, equipamento_id))
+    INSERT INTO falhas (descricao, tipo, gravidade, data_ocorrencia, status, maquina_id, equipamento_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+""", (descricao, tipo, gravidade, data_ocorrencia, status, maquina_id, equipamento_id))
 
     conn.commit()
+
+    falha_id = cursor.lastrowid   
     conn.close()
-    return "OK: falha inserida"
+
+    return falha_id
