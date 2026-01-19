@@ -4,9 +4,7 @@ from app.falhas import inserir_falha
 
 bp = Blueprint("main", __name__)
 
-# -------------------------
-# EQUIPAMENTOS
-# -------------------------
+
 @bp.route("/equipamentos", methods=["POST"])
 def criar_equipamentos():
     dados = request.get_json()
@@ -50,9 +48,7 @@ def get_equipamentos():
 
     return jsonify(equipamentos)
 
-# -------------------------
-# MAQUINAS
-# -------------------------
+
 @bp.route("/maquinas", methods=["POST"])
 def criar_maquinas():
     dados = request.get_json()
@@ -96,9 +92,7 @@ def get_maquinas():
 
     return jsonify(maquinas)
 
-# -------------------------
-# FALHAS - GET
-# -------------------------
+
 @bp.route("/falhas", methods=["GET"])
 def listar_falhas():
     conn = get_connection()
@@ -138,9 +132,7 @@ def listar_falhas():
 
     return jsonify(resultado)
 
-# -------------------------
-# FALHAS - POST
-# -------------------------
+
 @bp.route("/falhas", methods=["POST"])
 def criar_falha():
     dados = request.get_json()
@@ -174,7 +166,7 @@ def criar_falha():
     if isinstance(resp, str) and resp.startswith("Erro"):
         return jsonify({"erro": resp}), 400
 
-    falha_id = resp  # <-- esse é o ID certo
+    falha_id = resp 
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -207,9 +199,7 @@ def criar_falha():
 
     return jsonify(falha), 201
 
-# -------------------------
-# FALHAS - PUT (atualizar)
-# -------------------------
+
 @bp.route("/falhas/<int:falha_id>", methods=["PUT"])
 def atualizar_falha(falha_id):
     dados = request.get_json()
