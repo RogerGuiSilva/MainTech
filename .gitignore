@@ -8,3 +8,12 @@ Back/venv/
 # Python cache
 __pycache__/
 *.pyc
+
+# venv
+.venv/
+venv/
+Back/.venv/
+Back/venv/
+
+# vscode
+.vscode/
