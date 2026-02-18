@@ -1,3 +1,3 @@
-export default function Home() {
-  return <h1>Falhas- MainTech</h1>;
+export default function Maquinas() {
+  return <h1>Máquinas</h1>;
 }
