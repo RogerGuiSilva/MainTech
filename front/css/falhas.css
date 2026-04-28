@@ -1,0 +1,56 @@
+.falhas_actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn_secondary {
+  background: transparent;
+  border: 1px solid #38bdf8;
+  padding: 10px 16px;
+  border-radius: 6px;
+  color: #38bdf8;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.btn_secondary:hover {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+
+.status {
+  margin-top: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+
+
+.status.aberta {
+  color: #ef4444; 
+}
+
+.status.em_analise {
+  color: #f59e0b;
+}
+
+.status.em_manutencao {
+  color: #3b82f6;
+}
+
+.status.parada {
+  color: #f97316;
+}
+
+.status.planejada {
+  color: #a78bfa;
+}
+
+.status.resolvida {
+  color: #22c55e; 
+}
+
+.status.cancelada {
+  color: #6b7280; 
+}

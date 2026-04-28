@@ -1,0 +1,39 @@
+.maquinas_actions {
+    display:flex;
+    gap: 12px;
+}
+
+.btn_secondary {
+    background: transparent;
+    border: 1px solid #38bdf8;
+    padding: 10px 16px;
+    border-radius: 6px;
+    color: #38bdf8;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn_secondary:hover{
+ background: #38bdf8;
+  color: #0f172a;
+
+}
+
+.status {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.status.disponível {
+  color: #22c55e;
+}
+
+.status.manutenção {
+  color: #f59e0b;
+}
+
+.status.em\ uso {
+  color: #3b82f6;
+}
+
+
