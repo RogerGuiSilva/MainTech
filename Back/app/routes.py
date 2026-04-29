@@ -211,6 +211,7 @@ def criar_falha():
     if maquina_id is not None and equipamento_id is not None:
         return jsonify({"erro": "Envie apenas um: 'maquina_id' OU 'equipamento_id'"}), 400
 
+    # 🔥 INSERE A FALHA
     resp = inserir_falha(
         descricao=dados["descricao"],
         tipo=dados["tipo"],
@@ -226,6 +227,27 @@ def criar_falha():
 
     falha_id = resp
 
+    # 🚀 NOVA LÓGICA (AQUI QUE MUDAMOS O JOGO)
+    if maquina_id is not None:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        if status == "EM_MANUTENCAO":
+            cursor.execute(
+                "UPDATE maquinas SET status = ? WHERE id = ?",
+                ("Manutenção", maquina_id)
+            )
+
+        elif status == "PARADA":
+            cursor.execute(
+                "UPDATE maquinas SET status = ? WHERE id = ?",
+                ("Parada", maquina_id)
+            )
+
+        conn.commit()
+        conn.close()
+
+    # 🔍 RETORNA A FALHA COMPLETA
     conn = get_connection()
     cursor = conn.cursor()
     falha = montar_falha_com_join(cursor, falha_id)
