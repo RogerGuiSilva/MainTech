@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from app.dataBase.db import get_connection
 from app.falhas import inserir_falha
 
+
 bp = Blueprint("main", __name__)
 
 STATUS_VALIDOS = {
@@ -222,6 +223,28 @@ def criar_falha():
         equipamento_id=equipamento_id
     )
 
+    # Atualiza status da máquina automaticamente
+    if maquina_id and status in ["EM_MANUTENCAO", "PARADA"]:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        UPDATE maquinas
+        SET status = 'EM_MANUTENCAO'
+        WHERE id = ?
+    """, (maquina_id,))
+        
+        cursor.execute("""
+    UPDATE maquinas
+    SET status = 'EM_MANUTENCAO'
+    WHERE id = ? AND status != 'EM_MANUTENCAO'
+""", (maquina_id,))
+
+        conn.commit()
+        conn.close()
+
+        
+
     if isinstance(resp, str) and resp.startswith("Erro"):
         return jsonify({"erro": resp}), 400
 
@@ -257,6 +280,8 @@ def criar_falha():
 
 
 @bp.route("/falhas/<int:falha_id>/status", methods=["PATCH"])
+
+
 def atualizar_status_falha(falha_id):
     dados = request.get_json()
     if not dados:
@@ -301,6 +326,35 @@ def atualizar_status_falha(falha_id):
 
     cursor.execute("UPDATE falhas SET status = ? WHERE id = ?", (novo_status, falha_id))
     conn.commit()
+    
+    cursor.execute("SELECT maquina_id FROM falhas WHERE id = ?", (falha_id,))
+    row_maquina = cursor.fetchone()
+
+    if row_maquina and row_maquina[0]:
+        maquina_id = row_maquina[0]
+
+        if novo_status in ["EM_MANUTENCAO", "PARADA"]:
+            cursor.execute("""
+            UPDATE maquinas
+            SET status = 'EM_MANUTENCAO'
+            WHERE id = ?
+        """, (maquina_id,))
+
+        elif novo_status == "RESOLVIDA":
+            cursor.execute("""
+            UPDATE maquinas
+            SET status = 'DISPONIVEL'
+            WHERE id = ?
+        """, (maquina_id,))
+            
+    falha = montar_falha_com_join(cursor, falha_id)
+
+    conn.commit()
+    conn.close()
+
+    return jsonify(falha), 200
+
+
 
     falha = montar_falha_com_join(cursor, falha_id)
     conn.close()
