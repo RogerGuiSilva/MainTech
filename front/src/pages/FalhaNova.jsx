@@ -2,34 +2,38 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function FalhaNova() {
+
   const navigate = useNavigate();
 
   const [descricao, setDescricao] = useState("");
   const [tipo, setTipo] = useState("");
   const [gravidade, setGravidade] = useState("");
-  const [status, setStatus] = useState("ABERTA");
+  const [status, setStatus] = useState("ANALISE");
   const [data, setData] = useState("");
   const [maquinaId, setMaquinaId] = useState("");
 
   const [maquinas, setMaquinas] = useState([]);
 
-
   useEffect(() => {
+
     fetch("http://localhost:5000/maquinas")
       .then(res => res.json())
       .then(data => setMaquinas(data))
       .catch(err => console.error(err));
+
   }, []);
 
-
   const criarFalha = (e) => {
+
     e.preventDefault();
 
     fetch("http://localhost:5000/falhas", {
       method: "POST",
+
       headers: {
         "Content-Type": "application/json"
       },
+
       body: JSON.stringify({
         descricao,
         tipo,
@@ -41,14 +45,19 @@ export default function FalhaNova() {
     })
       .then(res => res.json())
       .then(() => {
+
         alert("Falha criada com sucesso!");
+
         navigate("/falhas");
+
       })
       .catch(err => console.error(err));
   };
 
   return (
+
     <div className="form_container">
+
       <h1>Nova Falha</h1>
 
       <form onSubmit={criarFalha}>
@@ -84,11 +93,17 @@ export default function FalhaNova() {
           required
         />
 
-        <select value={status} onChange={e => setStatus(e.target.value)}>
-          <option value="ABERTA">ABERTA</option>
-          <option value="EM_ANALISE">EM_ANALISE</option>
-          <option value="EM_MANUTENCAO">EM_MANUTENCAO</option>
-          <option value="PARADA">PARADA</option>
+        <select
+          value={status}
+          onChange={e => setStatus(e.target.value)}
+        >
+          <option value="ANALISE">
+            ANALISE
+          </option>
+
+          <option value="MANUTENCAO">
+            MANUTENCAO
+          </option>
         </select>
 
         <select
@@ -96,17 +111,30 @@ export default function FalhaNova() {
           onChange={e => setMaquinaId(e.target.value)}
           required
         >
-          <option value="">Selecione a máquina</option>
+
+          <option value="">
+            Selecione a máquina
+          </option>
+
           {maquinas.map(m => (
-            <option key={m.id} value={m.id}>
+
+            <option
+              key={m.id}
+              value={m.id}
+            >
               {m.nome}
             </option>
+
           ))}
+
         </select>
 
-        <button type="submit">Criar Falha</button>
+        <button type="submit">
+          Criar Falha
+        </button>
 
       </form>
+
     </div>
   );
 }

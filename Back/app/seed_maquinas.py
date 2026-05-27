@@ -1,24 +1,35 @@
-
 from app.maquinas import inserir_maquina
 from app.dataBase.db import get_connection
 
+
 def tabela_tem_dados(nome_tabela: str) -> bool:
+
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute(f"SELECT COUNT(*) FROM {nome_tabela}")
+
+    cursor.execute(f"""
+        SELECT COUNT(*)
+        FROM {nome_tabela}
+    """)
+
     qtd = cursor.fetchone()[0]
+
     conn.close()
+
     return qtd > 0
 
+
 def seed_maquinas():
-    
+
     if tabela_tem_dados("maquinas"):
-        print("já tem dados.")
+
+        print("Seed ignorada: tabela 'maquinas' já possui dados.")
+
         return
 
     maquinas = [
-        {"nome":"Injetora Plástica 120T","setor":"Injeção","tipo":"Máquina","status":"Disponível"},
-        {"nome":"Injetora Plástica 300T","setor":"Injeção","tipo":"Máquina","status":"Disponível"},
+        {"nome":"Injetora Plástica 120T","setor":"Injeção","tipo":"Máquina","status":"DISPONIVEL"},
+        {"nome":"Injetora Plástica 300T","setor":"Injeção","tipo":"Máquina","status":"MANUTENÇÃO"},
         {"nome":"Injetora Plástica 500T","setor":"Injeção","tipo":"Máquina","status":"Manutenção"},
         {"nome":"Extrusora de Filme 75mm","setor":"Extrusão","tipo":"Máquina","status":"Disponível"},
         {"nome":"Extrusora Monoscrew 90mm","setor":"Extrusão","tipo":"Máquina","status":"Disponível"},
@@ -45,21 +56,36 @@ def seed_maquinas():
         {"nome":"Mesa Rotativa Indexadora","setor":"Automação","tipo":"Equipamento","status":"Em Uso"},
         {"nome":"Separador Magnético Industrial","setor":"Automação","tipo":"Equipamento","status":"Disponível"},
         {"nome":"Cortadora a Laser 4000W","setor":"Usinagem","tipo":"Máquina","status":"Disponível"},
-        {"nome":"Laser de Corte e Gravação","setor":"Usinagem","tipo":"Máquina","status":"Em Uso"},
+        {"nome":"Laser de Corte e Gravação","setor":"Usinagem","tipo":"Máquina","status":"DISPONIVEL"},
         {"nome":"Cabine de Pintura Automatizada","setor":"Automação","tipo":"Sistema","status":"Disponível"},
         {"nome":"Sistema de Visão 3D","setor":"Automação","tipo":"Equipamento","status":"Disponível"},
-        {"nome":"Extrusora de Tubos 150mm","setor":"Extrusão","tipo":"Máquina","status":"Em Uso"},
+        {"nome":"Extrusora de Tubos 150mm","setor":"Extrusão","tipo":"Máquina","status":"DISPONIVEL"},
         {"nome":"Injetora Vertical 80T","setor":"Injeção","tipo":"Máquina","status":"Disponível"},
         {"nome":"Injetora Horizontal 250T","setor":"Injeção","tipo":"Máquina","status":"Manutenção"},
-        {"nome":"Elevador de Paletes","setor":"Movimentação","tipo":"Equipamento","status":"Disponível"},
+        {"nome":"Elevador de Paletes","setor":"Movimentação","tipo":"Equipamento","status":"DISPONIVEL"},
         {"nome":"Braço Robótico Pick & Place","setor":"Automação","tipo":"Sistema","status":"Em Uso"},
-        {"nome":"Prensa Excêntrica 100T","setor":"Usinagem","tipo":"Máquina","status":"Disponível"}
+        {"nome":"Prensa Excêntrica 100T","setor":"Usinagem","tipo":"Máquina","status":"DISPONIVEL"}
     ]
 
-    for m in maquinas:
-        inserir_maquina(**m)
+    inseridos = 0
 
-    print("concluído.")
+    for maquina in maquinas:
+
+        resp = inserir_maquina(**maquina)
+
+        if isinstance(resp, int):
+
+            inseridos += 1
+
+        else:
+
+            print(resp)
+
+    print(f"{inseridos} máquinas inseridas com sucesso.")
+
 
 if __name__ == "__main__":
+
     seed_maquinas()
+
+   
