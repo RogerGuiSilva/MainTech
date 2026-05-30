@@ -10,9 +10,12 @@ export default function FalhaNova() {
   const [gravidade, setGravidade] = useState("");
   const [status, setStatus] = useState("ANALISE");
   const [data, setData] = useState("");
+
   const [maquinaId, setMaquinaId] = useState("");
+  const [equipamentoId, setEquipamentoId] = useState("");
 
   const [maquinas, setMaquinas] = useState([]);
+  const [equipamentos, setEquipamentos] = useState([]);
 
   useEffect(() => {
 
@@ -21,11 +24,26 @@ export default function FalhaNova() {
       .then(data => setMaquinas(data))
       .catch(err => console.error(err));
 
+    fetch("http://localhost:5000/equipamentos")
+      .then(res => res.json())
+      .then(data => setEquipamentos(data))
+      .catch(err => console.error(err));
+
   }, []);
 
   const criarFalha = (e) => {
 
     e.preventDefault();
+
+    if (!maquinaId && !equipamentoId) {
+      alert("Selecione uma máquina ou um equipamento");
+      return;
+    }
+
+    if (maquinaId && equipamentoId) {
+      alert("Selecione apenas uma máquina ou um equipamento");
+      return;
+    }
 
     fetch("http://localhost:5000/falhas", {
       method: "POST",
@@ -40,7 +58,8 @@ export default function FalhaNova() {
         gravidade,
         data_ocorrencia: data,
         status,
-        maquina_id: Number(maquinaId)
+        maquina_id: maquinaId ? Number(maquinaId) : null,
+        equipamento_id: equipamentoId ? Number(equipamentoId) : null
       })
     })
       .then(res => res.json())
@@ -109,24 +128,37 @@ export default function FalhaNova() {
         <select
           value={maquinaId}
           onChange={e => setMaquinaId(e.target.value)}
-          required
         >
-
           <option value="">
             Selecione a máquina
           </option>
 
           {maquinas.map(m => (
-
             <option
               key={m.id}
               value={m.id}
             >
               {m.nome}
             </option>
-
           ))}
+        </select>
 
+        <select
+          value={equipamentoId}
+          onChange={e => setEquipamentoId(e.target.value)}
+        >
+          <option value="">
+            Selecione o equipamento
+          </option>
+
+          {equipamentos.map(e => (
+            <option
+              key={e.id}
+              value={e.id}
+            >
+              {e.nome}
+            </option>
+          ))}
         </select>
 
         <button type="submit">
