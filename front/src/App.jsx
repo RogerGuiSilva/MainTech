@@ -5,6 +5,8 @@ import Maquinas from "./pages/Maquinas.jsx";
 import FalhaNova from "./pages/FalhaNova";
 import Falhas from "./pages/Falhas";
 import Equipamentos from "./pages/Equipamentos.jsx";
+import Historico from "./pages/Historico";
+import EditarFalha from "./pages/EditarFalha";
 
 export default function App() {
   return (
@@ -14,6 +16,10 @@ export default function App() {
       <Route path="/falhas" element={<Falhas />} />
       <Route path="/falhas/nova" element={<FalhaNova />} />
       <Route path="/equipamentos" element={<Equipamentos />} />
+      <Route path="/falhas/historico" element={<Historico />} />
+      <Route path="/falhas/editar/:id"element={<EditarFalha />}/>
+      
+
     </Routes>
   );
 }
