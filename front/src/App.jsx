@@ -9,10 +9,15 @@ import Historico from "./pages/Historico";
 import EditarFalha from "./pages/EditarFalha";
 import NovaMaquina from "./pages/NovaMaquina";
 import NovoEquipamento from "./pages/NovoEquipamento";
+import Controle from "./pages/Controle";
 
 export default function App() {
   return (
     <Routes>
+      <Route
+  path="/controle"
+  element={<Controle />}
+/>
       <Route path="/" element={<Home />} />
       <Route path="/maquinas" element={<Maquinas />} />
       <Route path="/maquinas/nova" element={<NovaMaquina />} />

@@ -50,6 +50,15 @@ export default function Equipamentos() {
 
 }
 
+  function statusClass(status) {
+    return String(status ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  }
+
   return (
 
     <div className="maquinas">
@@ -117,7 +126,7 @@ export default function Equipamentos() {
                   <strong>Tipo:</strong> {e.tipo}
                 </p>
 
-                <p className={`status ${e.status.toLowerCase()}`}>
+                <p className={`status ${statusClass(e.status)}`}>
                   {e.status}
                 </p>
 
