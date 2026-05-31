@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import "../../css/falhas.css";
+import "../../css/style.css";
 
 export default function Equipamentos() {
 
   const [equipamentos, setEquipamentos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [busca, setBusca] = useState("");
 
   useEffect(() => {
 
@@ -25,6 +26,29 @@ export default function Equipamentos() {
       });
 
   }, []);
+
+  function excluirEquipamento(id) {
+
+  const confirmar = window.confirm(
+    "Deseja realmente excluir este equipamento?"
+  );
+
+  if (!confirmar) return;
+
+  fetch(`http://localhost:5000/equipamentos/${id}`, {
+    method: "DELETE"
+  })
+    .then(() => {
+
+      setEquipamentos(
+        equipamentos.filter(
+          e => e.id !== id
+        )
+      );
+
+    });
+
+}
 
   return (
 
@@ -51,6 +75,14 @@ export default function Equipamentos() {
 
       </header>
 
+      <input
+        type="text"
+        placeholder="Buscar equipamento..."
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
+        className="busca_input"
+      />
+
       {loading ? (
 
         <p>Carregando...</p>
@@ -59,27 +91,46 @@ export default function Equipamentos() {
 
         <section className="maquinas_list">
 
-          {equipamentos.map((e) => (
+          {equipamentos
+            .filter((e) => {
 
-            <div key={e.id} className="maquina_card">
+              const termo = busca.toLowerCase();
 
-              <h2>{e.nome}</h2>
+              return (
+                e.nome?.toLowerCase().includes(termo) ||
+                e.setor?.toLowerCase().includes(termo) ||
+                e.tipo?.toLowerCase().includes(termo)
+              );
 
-              <p>
-                <strong>Setor:</strong> {e.setor}
-              </p>
+            })
+            .map((e) => (
 
-              <p>
-                <strong>Tipo:</strong> {e.tipo}
-              </p>
+              <div key={e.id} className="maquina_card">
 
-              <p className={`status ${e.status.toLowerCase()}`}>
-                {e.status}
-              </p>
+                <h2>{e.nome}</h2>
 
-            </div>
+                <p>
+                  <strong>Setor:</strong> {e.setor}
+                </p>
 
-          ))}
+                <p>
+                  <strong>Tipo:</strong> {e.tipo}
+                </p>
+
+                <p className={`status ${e.status.toLowerCase()}`}>
+                  {e.status}
+                </p>
+
+                <button
+                  className="btn_delete"
+                    onClick={() => excluirEquipamento(e.id)}
+                                  >
+                                Excluir
+                                      </button>
+
+              </div>
+
+            ))}
 
         </section>
 

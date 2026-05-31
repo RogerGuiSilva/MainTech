@@ -1,18 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import "../../css/style.css";
 
 export default function EditarFalha() {
 
   const navigate = useNavigate();
-
-  const [falhas, setFalhas] = useState([]);
-
-  const [tipoItem, setTipoItem] = useState("");
-
-  const [maquinaId, setMaquinaId] = useState("");
-  const [equipamentoId, setEquipamentoId] = useState("");
-
-  const [falhaSelecionada, setFalhaSelecionada] = useState(null);
+  const { id } = useParams();
 
   const [descricao, setDescricao] = useState("");
   const [tipo, setTipo] = useState("");
@@ -20,61 +13,33 @@ export default function EditarFalha() {
   const [status, setStatus] = useState("ANALISE");
   const [data, setData] = useState("");
 
+  const [maquina, setMaquina] = useState(null);
+  const [equipamento, setEquipamento] = useState(null);
+
   useEffect(() => {
 
-    fetch("http://localhost:5000/falhas")
+    fetch(`http://localhost:5000/falhas/${id}`)
       .then(res => res.json())
-      .then(data => setFalhas(data));
+      .then(falha => {
 
-  }, []);
+        setDescricao(falha.descricao);
+        setTipo(falha.tipo);
+        setGravidade(falha.gravidade);
+        setStatus(falha.status);
+        setData(falha.data_ocorrencia);
 
-  const maquinasComFalha = [
-    ...new Map(
-      falhas
-        .filter(f => f.maquina)
-        .map(f => [f.maquina.id, f.maquina])
-    ).values()
-  ];
+        setMaquina(falha.maquina);
+        setEquipamento(falha.equipamento);
 
-  const equipamentosComFalha = [
-    ...new Map(
-      falhas
-        .filter(f => f.equipamento)
-        .map(f => [f.equipamento.id, f.equipamento])
-    ).values()
-  ];
+      });
 
-  const falhasDaMaquina = falhas.filter(
-    f => f.maquina?.id === Number(maquinaId)
-  );
-
-  const falhasDoEquipamento = falhas.filter(
-    f => f.equipamento?.id === Number(equipamentoId)
-  );
-
-  function selecionarFalha(idFalha) {
-
-    const falha = falhas.find(
-      f => f.id === Number(idFalha)
-    );
-
-    if (!falha) return;
-
-    setFalhaSelecionada(falha.id);
-
-    setDescricao(falha.descricao);
-    setTipo(falha.tipo);
-    setGravidade(falha.gravidade);
-    setStatus(falha.status);
-    setData(falha.data_ocorrencia);
-
-  }
+  }, [id]);
 
   function salvar(e) {
 
     e.preventDefault();
 
-    fetch(`http://localhost:5000/falhas/${falhaSelecionada}`, {
+    fetch(`http://localhost:5000/falhas/${id}`, {
       method: "PUT",
 
       headers: {
@@ -106,185 +71,67 @@ export default function EditarFalha() {
 
       <h1>Editar Falha</h1>
 
-      <select
-        value={tipoItem}
-        onChange={(e) => {
+      {maquina && (
+        <p>
+          <strong>Máquina:</strong> {maquina.nome}
+        </p>
+      )}
 
-          setTipoItem(e.target.value);
+      {equipamento && (
+        <p>
+          <strong>Equipamento:</strong> {equipamento.nome}
+        </p>
+      )}
 
-          setMaquinaId("");
-          setEquipamentoId("");
-          setFalhaSelecionada(null);
+      <form onSubmit={salvar}>
 
-        }}
-      >
-        <option value="">
-          Selecione o tipo
-        </option>
+        <input
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value)}
+        />
 
-        <option value="MAQUINA">
-          Máquina
-        </option>
+        <input
+          value={tipo}
+          onChange={(e) => setTipo(e.target.value)}
+        />
 
-        <option value="EQUIPAMENTO">
-          Equipamento
-        </option>
+        <input
+          value={gravidade}
+          onChange={(e) => setGravidade(e.target.value)}
+        />
 
-      </select>
-
-      {tipoItem === "MAQUINA" && (
+        <input
+          type="date"
+          value={data}
+          onChange={(e) => setData(e.target.value)}
+        />
 
         <select
-          value={maquinaId}
-          onChange={(e) => {
-
-            setMaquinaId(e.target.value);
-            setFalhaSelecionada(null);
-
-          }}
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
         >
-          <option value="">
-            Selecione uma máquina
+          <option value="ANALISE">
+            ANALISE
           </option>
 
-          {maquinasComFalha.map(m => (
-
-            <option
-              key={m.id}
-              value={m.id}
-            >
-              {m.nome}
-            </option>
-
-          ))}
-
-        </select>
-
-      )}
-
-      {tipoItem === "EQUIPAMENTO" && (
-
-        <select
-          value={equipamentoId}
-          onChange={(e) => {
-
-            setEquipamentoId(e.target.value);
-            setFalhaSelecionada(null);
-
-          }}
-        >
-          <option value="">
-            Selecione um equipamento
+          <option value="MANUTENCAO">
+            MANUTENCAO
           </option>
 
-          {equipamentosComFalha.map(eq => (
-
-            <option
-              key={eq.id}
-              value={eq.id}
-            >
-              {eq.nome}
-            </option>
-
-          ))}
-
-        </select>
-
-      )}
-
-      {(maquinaId || equipamentoId) && (
-
-        <select
-          onChange={(e) =>
-            selecionarFalha(e.target.value)
-          }
-        >
-          <option value="">
-            Selecione uma falha
+          <option value="RESOLVIDA">
+            RESOLVIDA
           </option>
 
-          {(tipoItem === "MAQUINA"
-            ? falhasDaMaquina
-            : falhasDoEquipamento
-          ).map(f => (
-
-            <option
-              key={f.id}
-              value={f.id}
-            >
-              {f.descricao}
-            </option>
-
-          ))}
-
+          <option value="CANCELADA">
+            CANCELADA
+          </option>
         </select>
 
-      )}
+        <button type="submit">
+          Salvar Alterações
+        </button>
 
-      {falhaSelecionada && (
-
-        <form onSubmit={salvar}>
-
-          <input
-            value={descricao}
-            onChange={(e) =>
-              setDescricao(e.target.value)
-            }
-          />
-
-          <input
-            value={tipo}
-            onChange={(e) =>
-              setTipo(e.target.value)
-            }
-          />
-
-          <input
-            value={gravidade}
-            onChange={(e) =>
-              setGravidade(e.target.value)
-            }
-          />
-
-          <input
-            type="date"
-            value={data}
-            onChange={(e) =>
-              setData(e.target.value)
-            }
-          />
-
-          <select
-            value={status}
-            onChange={(e) =>
-              setStatus(e.target.value)
-            }
-          >
-            <option value="ANALISE">
-              ANALISE
-            </option>
-
-            <option value="MANUTENCAO">
-              MANUTENCAO
-            </option>
-
-            <option value="RESOLVIDA">
-              RESOLVIDA
-            </option>
-
-            <option value="CANCELADA">
-              CANCELADA
-            </option>
-
-          </select>
-
-          <button type="submit">
-            Salvar Alterações
-          </button>
-
-        </form>
-
-      )}
+      </form>
 
     </div>
 

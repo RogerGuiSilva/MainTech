@@ -1,48 +1,7 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import "../../css/home.css";
+import "../../css/style.css";
 
 export default function Home() {
-
-  const [maquinas, setMaquinas] = useState([]);
-  const [falhas, setFalhas] = useState([]);
-  const [equipamentos, setEquipamentos] = useState([]);
-
-  useEffect(() => {
-
-    fetch("http://localhost:5000/maquinas")
-      .then(res => res.json())
-      .then(data => setMaquinas(data))
-      .catch(err => console.error(err));
-
-    fetch("http://localhost:5000/falhas")
-      .then(res => res.json())
-      .then(data => setFalhas(data))
-      .catch(err => console.error(err));
-
-    fetch("http://localhost:5000/equipamentos")
-      .then(res => res.json())
-      .then(data => setEquipamentos(data))
-      .catch(err => console.error(err));
-
-  }, []);
-
-  const totalMaquinas = maquinas.length;
-
-  const totalEquipamentos = equipamentos.length;
-
-  const falhasEmMaquinas = falhas.filter(
-    f => f.maquina
-  ).length;
-
-  const falhasEmEquipamentos = falhas.filter(
-    f => f.equipamento
-  ).length;
-
-  const maquinasParadas = maquinas.filter(
-    m => m.status === "PARADA"
-  ).length;
-
   return (
     <div className="home">
 
@@ -53,35 +12,6 @@ export default function Home() {
           Painel Industrial para máquinas, falhas e equipamentos
         </p>
       </header>
-
-      <div className="dashboard_cards">
-
-        <div className="dashboard_card">
-          <h2>{totalMaquinas}</h2>
-          <p>Máquinas</p>
-        </div>
-
-        <div className="dashboard_card">
-          <h2>{totalEquipamentos}</h2>
-          <p>Equipamentos</p>
-        </div>
-
-        <div className="dashboard_card">
-          <h2>{falhasEmMaquinas}</h2>
-          <p>Falhas em Máquinas</p>
-        </div>
-
-        <div className="dashboard_card">
-          <h2>{falhasEmEquipamentos}</h2>
-          <p>Falhas em Equipamentos</p>
-        </div>
-
-        <div className="dashboard_card">
-          <h2>{maquinasParadas}</h2>
-          <p>Máquinas Paradas</p>
-        </div>
-
-      </div>
 
       <section className="home_hero">
         <img
@@ -110,6 +40,13 @@ export default function Home() {
           <h2>Equipamentos</h2>
           <p>Equipamentos Cadastrados</p>
         </Link>
+
+        <Link className="card" to="/controle">
+          <img src="/img/painel-de-controle.png" className="card_icon" />
+          <h2>Controle</h2>
+          <p>Dashboard e indicadores</p>
+        </Link>
+
 
       </section>
 

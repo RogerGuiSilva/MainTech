@@ -5,6 +5,8 @@ from app.falhas import inserir_falha
 bp = Blueprint("main", __name__)
 
 
+
+
 STATUS_FALHA = {
     "ANALISE",
     "MANUTENCAO",
@@ -762,3 +764,37 @@ def deletar_falha(falha_id):
     }), 200
 
     atualizar_status_maquina(cursor, maquina_id)
+
+
+    @bp.route("/maquinas/<int:id>", methods=["DELETE"])
+    def excluir_maquina(id):
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+        "DELETE FROM maquinas WHERE id = ?",
+        (id,)
+        )
+
+        conn.commit()
+        conn.close()
+
+        return {"mensagem": "Máquina excluída"}
+    
+
+@bp.route("/equipamentos/<int:id>", methods=["DELETE"])
+def excluir_equipamento(id):
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM equipamentos WHERE id = ?",
+        (id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return {"mensagem": "Equipamento excluído"}

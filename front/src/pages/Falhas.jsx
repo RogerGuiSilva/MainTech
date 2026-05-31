@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import "../../css/falhas.css";
+import "../../css/style.css";
 
 export default function Falhas() {
 
   const [falhas, setFalhas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [busca, setBusca] = useState("");
 
   useEffect(() => {
     fetch("http://localhost:5000/falhas")
       .then(res => res.json())
       .then(data => {
-        setFalhas(data);
+        setFalhas(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(err => {
@@ -41,53 +42,69 @@ export default function Falhas() {
         </div>
       </header>
 
+      <input
+        type="text"
+        placeholder="Buscar falha..."
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
+        className="busca_input"
+      />
+
       {loading ? (
         <p>Carregando...</p>
       ) : (
         <section className="maquinas_list">
 
-          {falhas.map((f) => (
-            <div key={f.id} className="maquina_card">
+          {falhas
+            .filter((f) => {
 
-              <h2>{f.descricao}</h2>
+              const termo = busca.toLowerCase();
 
-              <p className={`status ${f.status.toLowerCase()}`}>
-                {f.status}
-              </p>
+              return (
+                f.descricao?.toLowerCase().includes(termo) ||
+                f.maquina?.nome?.toLowerCase().includes(termo) ||
+                f.equipamento?.nome?.toLowerCase().includes(termo)
+              );
 
-              <p>
-                <strong>Tipo:</strong> {f.tipo}
-              </p>
+            })
+            .map((f) => (
 
-              <p>
-                <strong>Gravidade:</strong> {f.gravidade}
-              </p>
+              <div key={f.id} className="maquina_card">
 
-              <p>
-                <strong>Data:</strong> {f.data_ocorrencia}
-              </p>
+                <h2>{f.descricao}</h2>
 
-              {f.maquina && (
-                <p>
-                  <strong>Máquina:</strong> {f.maquina.nome}
+                <p className={`status ${f.status?.toLowerCase()}`}>
+                  {f.status}
                 </p>
-              )}
 
-              {f.equipamento && (
-                <p>
-                  <strong>Equipamento:</strong> {f.equipamento.nome}
-                </p>
-              )}
+                <p><strong>Tipo:</strong> {f.tipo}</p>
 
-              <Link
-                to={`/falhas/editar/${f.id}`}
-                className="btn_secondary"
-              >
-                Editar
-              </Link>
+                <p><strong>Gravidade:</strong> {f.gravidade}</p>
 
-            </div>
-          ))}
+                <p><strong>Data:</strong> {f.data_ocorrencia}</p>
+
+                {f.maquina && (
+                  <p>
+                    <strong>Máquina:</strong> {f.maquina.nome}
+                  </p>
+                )}
+
+                {f.equipamento && (
+                  <p>
+                    <strong>Equipamento:</strong> {f.equipamento.nome}
+                  </p>
+                )}
+
+                <Link
+                  to={`/falhas/editar/${f.id}`}
+                  className="btn_secondary"
+                >
+                  Editar
+                </Link>
+
+              </div>
+
+            ))}
 
         </section>
       )}
