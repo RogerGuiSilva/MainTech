@@ -12,13 +12,16 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ResponsiveContainer
+  ResponsiveContainer,
+  LineChart,
+  Line
 } from "recharts";
 
 export default function Controle() {
 
   const [maquinas, setMaquinas] = useState([]);
   const [falhas, setFalhas] = useState([]);
+  const [historicoFalhas, setHistoricoFalhas] = useState([]);
   const [equipamentos, setEquipamentos] = useState([]);
 
   useEffect(() => {
@@ -33,6 +36,11 @@ export default function Controle() {
       .then(data => setFalhas(data))
       .catch(err => console.error(err));
 
+    fetch("http://localhost:5000/falhas/historico")
+      .then(res => res.json())
+      .then(data => setHistoricoFalhas(data))
+      .catch(err => console.error(err));
+
     fetch("http://localhost:5000/equipamentos")
       .then(res => res.json())
       .then(data => setEquipamentos(data))
@@ -40,32 +48,92 @@ export default function Controle() {
 
   }, []);
 
+  const todasFalhas = [
+    ...falhas,
+    ...historicoFalhas
+  ];
+
+  const normalizarStatus = (status) =>
+    String(status ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+
+  const obterMesOcorrencia = (dataOcorrencia) => {
+    const [, mes] = String(dataOcorrencia)
+      .split("T")[0]
+      .split("-")
+      .map(Number);
+
+    return Number.isInteger(mes) ? mes - 1 : null;
+  };
+
+  const meses = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Abr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Set",
+    "Out",
+    "Nov",
+    "Dez"
+  ];
+
+  const falhasPorMes = meses.map((mes, index) => {
+
+    const quantidade = todasFalhas.filter((f) => {
+
+      return obterMesOcorrencia(f.data_ocorrencia) === index;
+
+    }).length;
+
+    return {
+      mes,
+      falhas: quantidade
+    };
+
+  });
+
   const totalMaquinas = maquinas.length;
 
   const totalEquipamentos = equipamentos.length;
 
   const maquinasDisponiveis = maquinas.filter(
-    m => m.status === "DISPONIVEL"
+    m => normalizarStatus(m.status) === "DISPONIVEL"
+  ).length;
+
+  const equipamentosDisponiveis = equipamentos.filter(
+    e => normalizarStatus(e.status) === "DISPONIVEL"
+  ).length;
+
+  const maquinasEmUso = maquinas.filter(
+    m => normalizarStatus(m.status) === "EM_USO"
   ).length;
 
   const maquinasParadas = maquinas.filter(
-    m => m.status === "PARADA"
+    m => normalizarStatus(m.status) === "PARADA"
   ).length;
 
   const falhasAnalise = falhas.filter(
-    f => f.status === "ANALISE"
+    f => normalizarStatus(f.status) === "ANALISE"
   ).length;
 
   const falhasManutencao = falhas.filter(
-    f => f.status === "MANUTENCAO"
+    f => normalizarStatus(f.status) === "MANUTENCAO"
   ).length;
 
-  const falhasResolvidas = falhas.filter(
-    f => f.status === "RESOLVIDA"
+  const falhasResolvidas = historicoFalhas.filter(
+    f => normalizarStatus(f.status) === "RESOLVIDA"
   ).length;
 
-  const falhasCanceladas = falhas.filter(
-    f => f.status === "CANCELADA"
+  const falhasCanceladas = historicoFalhas.filter(
+    f => normalizarStatus(f.status) === "CANCELADA"
   ).length;
 
   const dadosFalhas = [
@@ -93,8 +161,23 @@ export default function Controle() {
       quantidade: maquinasDisponiveis
     },
     {
+      nome: "Em Uso",
+      quantidade: maquinasEmUso
+    },
+    {
       nome: "Paradas",
       quantidade: maquinasParadas
+    }
+  ];
+
+  const dadosEquipamentos = [
+    {
+      nome: "Disponíveis",
+      quantidade: equipamentosDisponiveis
+    },
+    {
+      nome: "Indisponíveis",
+      quantidade: totalEquipamentos - equipamentosDisponiveis
     }
   ];
 
@@ -141,6 +224,11 @@ export default function Controle() {
         <div className="dashboard_card">
           <h2>{maquinasDisponiveis}</h2>
           <p>Máquinas Disponíveis</p>
+        </div>
+
+        <div className="dashboard_card">
+          <h2>{equipamentosDisponiveis}</h2>
+          <p>Equipamentos Disponíveis</p>
         </div>
 
         <div className="dashboard_card">
@@ -240,10 +328,74 @@ export default function Controle() {
 
         </div>
 
+        <div className="grafico_card">
+
+          <h2>Status dos Equipamentos</h2>
+
+          <ResponsiveContainer
+            width="100%"
+            height={300}
+          >
+
+            <BarChart data={dadosEquipamentos}>
+
+              <CartesianGrid strokeDasharray="3 3" />
+
+              <XAxis dataKey="nome" />
+
+              <YAxis />
+
+              <Tooltip />
+
+              <Bar
+                dataKey="quantidade"
+                fill="#f59e0b"
+              />
+
+            </BarChart>
+
+          </ResponsiveContainer>
+
+        </div>
+
+        <div className="grafico_card">
+
+          <h2>Tendência Mensal de Falhas</h2>
+
+          <ResponsiveContainer
+            width="100%"
+            height={300}
+          >
+
+            <LineChart data={falhasPorMes}>
+
+              <CartesianGrid strokeDasharray="3 3" />
+
+              <XAxis dataKey="mes" />
+
+              <YAxis />
+
+              <Tooltip />
+
+              <Line
+                type="monotone"
+                dataKey="falhas"
+                stroke="#22c55e"
+                strokeWidth={3}
+              />
+
+            </LineChart>
+
+          </ResponsiveContainer>
+
+        </div>
+
       </div>
 
     </div>
 
   );
 
+  
 }
+
