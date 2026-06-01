@@ -10,20 +10,38 @@ export default function Equipamentos() {
 
   useEffect(() => {
 
-    fetch("http://localhost:5000/equipamentos")
-      .then(res => res.json())
-      .then(data => {
+    let ativo = true;
 
-        setEquipamentos(data);
-        setLoading(false);
+    function carregarEquipamentos() {
 
-      })
-      .catch(err => {
+      fetch("http://localhost:5000/equipamentos")
+        .then(res => res.json())
+        .then(data => {
 
-        console.error(err);
-        setLoading(false);
+          if (!ativo) return;
 
-      });
+          setEquipamentos(data);
+          setLoading(false);
+
+        })
+        .catch(err => {
+
+          if (!ativo) return;
+
+          console.error(err);
+          setLoading(false);
+
+        });
+
+    }
+
+    carregarEquipamentos();
+    window.addEventListener("focus", carregarEquipamentos);
+
+    return () => {
+      ativo = false;
+      window.removeEventListener("focus", carregarEquipamentos);
+    };
 
   }, []);
 
@@ -38,13 +56,30 @@ export default function Equipamentos() {
   fetch(`http://localhost:5000/equipamentos/${id}`, {
     method: "DELETE"
   })
+    .then(res => {
+
+      if (!res.ok) {
+        return res.json().then(data => {
+          throw new Error(data.erro || "Erro ao excluir equipamento");
+        });
+      }
+
+      return res.json();
+
+    })
     .then(() => {
 
       setEquipamentos(
-        equipamentos.filter(
+        equipamentos => equipamentos.filter(
           e => e.id !== id
         )
       );
+
+    })
+    .catch(err => {
+
+      console.error(err);
+      alert(err.message);
 
     });
 

@@ -101,6 +101,9 @@ def montar_falha_com_join(cursor, falha_id: int):
 
 def atualizar_status_maquina(cursor, maquina_id):
 
+    if maquina_id is None:
+        return
+
     cursor.execute("""
         SELECT COUNT(*)
         FROM falhas
@@ -127,6 +130,37 @@ def atualizar_status_maquina(cursor, maquina_id):
         """, (maquina_id,))
 
 
+def atualizar_status_equipamento(cursor, equipamento_id):
+
+    if equipamento_id is None:
+        return
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM falhas
+        WHERE equipamento_id = ?
+        AND status IN ('ANALISE', 'MANUTENCAO')
+    """, (equipamento_id,))
+
+    falhas_ativas = cursor.fetchone()[0]
+
+    if falhas_ativas > 0:
+
+        cursor.execute("""
+            UPDATE equipamentos
+            SET status = 'PARADA'
+            WHERE id = ?
+        """, (equipamento_id,))
+
+    else:
+
+        cursor.execute("""
+            UPDATE equipamentos
+            SET status = 'DISPONIVEL'
+            WHERE id = ?
+        """, (equipamento_id,))
+
+
 @bp.route("/equipamentos", methods=["GET"])
 def get_equipamentos():
 
@@ -134,8 +168,22 @@ def get_equipamentos():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT id, nome, setor, tipo, status
-        FROM equipamentos
+        SELECT
+            e.id,
+            e.nome,
+            e.setor,
+            e.tipo,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM falhas f
+                    WHERE f.equipamento_id = e.id
+                    AND f.status IN ('ANALISE', 'MANUTENCAO')
+                )
+                THEN 'PARADA'
+                ELSE 'DISPONIVEL'
+            END AS status
+        FROM equipamentos e
     """)
 
     rows = cursor.fetchall()
@@ -511,6 +559,11 @@ def criar_falha_route():
         
     )
 
+    atualizar_status_equipamento(
+        cursor,
+        equipamento_id,
+    )
+
     falha = montar_falha_com_join(cursor, resp)
 
     conn.commit()
@@ -561,7 +614,7 @@ def atualizar_status_falha(falha_id):
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT status, maquina_id
+        SELECT status, maquina_id, equipamento_id
         FROM falhas
         WHERE id = ?
     """, (falha_id,))
@@ -578,6 +631,7 @@ def atualizar_status_falha(falha_id):
 
     status_atual = row[0]
     maquina_id = row[1]
+    equipamento_id = row[2]
 
     if novo_status != status_atual:
 
@@ -608,6 +662,11 @@ def atualizar_status_falha(falha_id):
         cursor,
         maquina_id,
         
+    )
+
+    atualizar_status_equipamento(
+        cursor,
+        equipamento_id,
     )
 
     falha = montar_falha_com_join(
@@ -668,7 +727,7 @@ def atualizar_falha(falha_id):
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT maquina_id
+        SELECT maquina_id, equipamento_id
         FROM falhas
         WHERE id = ?
     """, (falha_id,))
@@ -684,6 +743,7 @@ def atualizar_falha(falha_id):
         }), 404
 
     maquina_id = row[0]
+    equipamento_id = row[1]
 
     set_clause = ", ".join([
         f"{campo} = ?"
@@ -704,6 +764,11 @@ def atualizar_falha(falha_id):
             cursor,
             maquina_id,
             
+        )
+
+        atualizar_status_equipamento(
+            cursor,
+            equipamento_id,
         )
 
     falha = montar_falha_com_join(
@@ -735,25 +800,24 @@ def deletar_falha(falha_id):
         return jsonify({
             "erro": "Falha não encontrada"
         }), 404
-    
-    
-
-
 
     cursor.execute("""
-    SELECT maquina_id
-    FROM falhas
-    WHERE id = ?
-""", (falha_id,))
+        SELECT maquina_id, equipamento_id
+        FROM falhas
+        WHERE id = ?
+    """, (falha_id,))
 
     row = cursor.fetchone()
     maquina_id = row[0] if row else None
-
+    equipamento_id = row[1] if row else None
 
     cursor.execute("""
         DELETE FROM falhas
         WHERE id = ?
     """, (falha_id,))
+
+    atualizar_status_maquina(cursor, maquina_id)
+    atualizar_status_equipamento(cursor, equipamento_id)
 
     conn.commit()
     conn.close()
@@ -763,38 +827,80 @@ def deletar_falha(falha_id):
         "falha": falha
     }), 200
 
-    atualizar_status_maquina(cursor, maquina_id)
 
+@bp.route("/maquinas/<int:id>", methods=["DELETE"])
+def excluir_maquina(id):
 
-    @bp.route("/maquinas/<int:id>", methods=["DELETE"])
-    def excluir_maquina(id):
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute(
-        "DELETE FROM maquinas WHERE id = ?",
-        (id,)
-        )
-
-        conn.commit()
-        conn.close()
-
-        return {"mensagem": "Máquina excluída"}
-    
-
-@bp.route("/equipamentos/<int:id>", methods=["DELETE"])
-def excluir_equipamento(id):
-
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "DELETE FROM equipamentos WHERE id = ?",
-        (id,)
-    )
+    cursor.execute("""
+        SELECT id
+        FROM maquinas
+        WHERE id = ?
+    """, (id,))
+
+    if cursor.fetchone() is None:
+
+        conn.close()
+
+        return jsonify({
+            "erro": "Máquina não encontrada"
+        }), 404
+
+    cursor.execute("""
+        UPDATE falhas
+        SET maquina_id = NULL
+        WHERE maquina_id = ?
+    """, (id,))
+
+    cursor.execute("""
+        DELETE FROM maquinas
+        WHERE id = ?
+    """, (id,))
 
     conn.commit()
     conn.close()
 
-    return {"mensagem": "Equipamento excluído"}
+    return jsonify({
+        "mensagem": "Máquina excluída"
+    }), 200
+
+
+@bp.route("/equipamentos/<int:id>", methods=["DELETE"])
+def excluir_equipamento(id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id
+        FROM equipamentos
+        WHERE id = ?
+    """, (id,))
+
+    if cursor.fetchone() is None:
+
+        conn.close()
+
+        return jsonify({
+            "erro": "Equipamento não encontrado"
+        }), 404
+
+    cursor.execute("""
+        UPDATE falhas
+        SET equipamento_id = NULL
+        WHERE equipamento_id = ?
+    """, (id,))
+
+    cursor.execute("""
+        DELETE FROM equipamentos
+        WHERE id = ?
+    """, (id,))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "mensagem": "Equipamento excluído"
+    }), 200

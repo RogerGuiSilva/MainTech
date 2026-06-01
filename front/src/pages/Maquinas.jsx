@@ -38,11 +38,28 @@ export default function Maquinas() {
   fetch(`http://localhost:5000/maquinas/${id}`, {
     method: "DELETE"
   })
+    .then(res => {
+
+      if (!res.ok) {
+        return res.json().then(data => {
+          throw new Error(data.erro || "Erro ao excluir máquina");
+        });
+      }
+
+      return res.json();
+
+    })
     .then(() => {
 
       setMaquinas(
-        maquinas.filter(m => m.id !== id)
+        maquinas => maquinas.filter(m => m.id !== id)
       );
+
+    })
+    .catch(err => {
+
+      console.error(err);
+      alert(err.message);
 
     });
 

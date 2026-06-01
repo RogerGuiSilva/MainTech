@@ -63,15 +63,30 @@ export default function FalhaNova() {
         equipamento_id: equipamentoId ? Number(equipamentoId) : null
       })
     })
-      .then(res => res.json())
+      .then(res => {
+
+        if (!res.ok) {
+          return res.json().then(data => {
+            throw new Error(data.erro || "Erro ao criar falha");
+          });
+        }
+
+        return res.json();
+
+      })
       .then(() => {
 
         alert("Falha criada com sucesso!");
 
-        navigate("/falhas");
+        navigate(equipamentoId ? "/equipamentos" : "/falhas");
 
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+
+        console.error(err);
+        alert(err.message);
+
+      });
   };
 
   return (
