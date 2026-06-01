@@ -81,6 +81,16 @@ export default function Historico() {
         </section>
       )}
 
+      <footer className="footer">
+        <p>
+          Sistema de Gestão de Manutenção Industrial © 2026
+        </p>
+
+        <p>
+          Desenvolvido por Roger 
+        </p>
+      </footer>
+
     </div>
   );
 }
