@@ -17,6 +17,32 @@ O projeto e dividido em duas partes:
 - Painel de controle com totais, status de maquinas/equipamentos e tendencia mensal de falhas.
 - Atualizacao automatica de status para `PARADA` quando existe falha ativa em `ANALISE` ou `MANUTENCAO`.
 
+## Telas
+
+### Pagina inicial
+
+![Pagina inicial](front/prints/home.jpg)
+
+### Painel de controle
+
+![Painel de controle](front/prints/painel-controle.jpg)
+
+### Maquinas
+
+![Lista de maquinas](front/prints/maquinas.jpg)
+
+![Cadastro de maquina](front/prints/nova-maquina.jpg)
+
+### Equipamentos
+
+![Lista de equipamentos](front/prints/equipamentos.jpg)
+
+![Cadastro de equipamento](front/prints/novo-equipamento.jpg)
+
+### Falhas
+
+![Lista de falhas](front/prints/falhas.jpg)
+
 ## Tecnologias
 
 ### Backend
